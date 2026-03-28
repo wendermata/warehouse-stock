@@ -1,0 +1,11 @@
+@WarehouseStockService_HostAddress = http://localhost:5283
+
+GET {{WarehouseStockService_HostAddress}}/todos/
+Accept: application/json
+
+###
+
+GET {{WarehouseStockService_HostAddress}}/todos/1
+Accept: application/json
+
+###
