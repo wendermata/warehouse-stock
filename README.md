@@ -1,2 +1,2 @@
-# warehouse-stock
+# Warehouse Stock
 POC of minimal API implementing ledger concept for warehouse context
