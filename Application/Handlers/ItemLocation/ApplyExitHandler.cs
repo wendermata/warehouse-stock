@@ -1,4 +1,6 @@
 using WarehouseStockService.Application.Common.Exceptions;
+using WarehouseStockService.Application.Events;
+using WarehouseStockService.Application.Ports;
 using WarehouseStockService.Domain.Entities;
 using WarehouseStockService.Domain.Repositories;
 
@@ -9,7 +11,8 @@ public sealed record ApplyExitInput(Guid Id, int Quantity, string ExternalRefere
 public sealed class ApplyExitHandler(
     IItemLocationRepository repo,
     IStockMovementRepository movementRepo,
-    IUnitOfWork uow)
+    IUnitOfWork uow,
+    IMessagePublisher publisher)
 {
     public async Task<ItemLocationOutput> HandleAsync(ApplyExitInput input, CancellationToken ct = default)
     {
@@ -29,6 +32,18 @@ public sealed class ApplyExitHandler(
         await repo.UpdateAsync(itemLocation, ct);
         await movementRepo.AddAsync(movement, ct);
         await uow.CommitAsync(ct);
+
+        await publisher.PublishAsync(
+            "stock.movement.exit",
+            new StockMovementCreatedEvent(
+                movement.Id,
+                movement.ItemLocationId,
+                movement.Type.ToString(),
+                movement.Quantity,
+                movement.BalanceAfter,
+                movement.ExternalReference,
+                movement.OccurredAt),
+            ct);
 
         return new ItemLocationOutput(
             itemLocation.Id,

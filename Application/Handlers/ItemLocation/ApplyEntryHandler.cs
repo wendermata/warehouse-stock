@@ -1,4 +1,6 @@
 using WarehouseStockService.Application.Common.Exceptions;
+using WarehouseStockService.Application.Events;
+using WarehouseStockService.Application.Ports;
 using WarehouseStockService.Domain.Entities;
 using WarehouseStockService.Domain.Repositories;
 
@@ -10,7 +12,8 @@ public sealed record ItemLocationOutput(Guid Id, Guid StockLocationId, string Sk
 public sealed class ApplyEntryHandler(
     IItemLocationRepository repo,
     IStockMovementRepository movementRepo,
-    IUnitOfWork uow)
+    IUnitOfWork uow,
+    IMessagePublisher publisher)
 {
     public async Task<ItemLocationOutput> HandleAsync(ApplyEntryInput input, CancellationToken ct = default)
     {
@@ -30,6 +33,18 @@ public sealed class ApplyEntryHandler(
         await repo.UpdateAsync(itemLocation, ct);
         await movementRepo.AddAsync(movement, ct);
         await uow.CommitAsync(ct);
+
+        await publisher.PublishAsync(
+            "stock.movement.entry",
+            new StockMovementCreatedEvent(
+                movement.Id,
+                movement.ItemLocationId,
+                movement.Type.ToString(),
+                movement.Quantity,
+                movement.BalanceAfter,
+                movement.ExternalReference,
+                movement.OccurredAt),
+            ct);
 
         return new ItemLocationOutput(
             itemLocation.Id,
