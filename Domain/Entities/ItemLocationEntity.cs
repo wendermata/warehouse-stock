@@ -10,10 +10,10 @@ public sealed class ItemLocationEntity
     public Guid   StockLocationId   { get; private set; }
     public string Sku               { get; private set; } = string.Empty;
     public int    AvailableQuantity { get; private set; }
-    public DateTime CreatedAt       { get; private set; }
-    public DateTime UpdatedAt       { get; private set; }
+    public DateTime  CreatedAt       { get; private set; }
+    public DateTime? UpdatedAt       { get; private set; }
 
-    private ItemLocationEntity(Guid id, Guid stockLocationId, string sku, int availableQuantity, DateTime createdAt, DateTime updatedAt)
+    private ItemLocationEntity(Guid id, Guid stockLocationId, string sku, int availableQuantity, DateTime createdAt, DateTime? updatedAt)
     {
         Id                = id;
         StockLocationId   = stockLocationId;
@@ -29,8 +29,7 @@ public sealed class ItemLocationEntity
         if (stockLocationId == Guid.Empty) throw new ArgumentException("StockLocationId must not be empty.", nameof(stockLocationId));
         ArgumentOutOfRangeException.ThrowIfNegative(initialQuantity);
 
-        var now = DateTime.UtcNow;
-        return new ItemLocationEntity(Guid.NewGuid(), stockLocationId, sku.Trim().ToUpperInvariant(), initialQuantity, now, now);
+        return new ItemLocationEntity(Guid.NewGuid(), stockLocationId, sku.Trim().ToUpperInvariant(), initialQuantity, DateTime.UtcNow, null);
     }
 
     public void ApplyEntry(int quantity)

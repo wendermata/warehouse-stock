@@ -9,15 +9,15 @@ public sealed class StockLocationEntity
     public Guid     Id              { get; private set; }
     public Guid     BranchId        { get; private set; }
     public Guid     StockTemplateId { get; private set; }
-    public DateTime CreatedAt       { get; private set; }
-    public DateTime UpdatedAt       { get; private set; }
+    public DateTime  CreatedAt       { get; private set; }
+    public DateTime? UpdatedAt       { get; private set; }
 
     private StockLocationEntity(
         Guid id,
         Guid branchId,
         Guid stockTemplateId,
         DateTime createdAt,
-        DateTime updatedAt)
+        DateTime? updatedAt)
     {
         Id              = id;
         BranchId        = branchId;
@@ -33,7 +33,6 @@ public sealed class StockLocationEntity
         if (stockTemplateId == Guid.Empty)
             throw new ArgumentException("StockTemplateId must not be empty.", nameof(stockTemplateId));
 
-        var now = DateTime.UtcNow;
-        return new StockLocationEntity(Guid.NewGuid(), branchId, stockTemplateId, now, now);
+        return new StockLocationEntity(Guid.NewGuid(), branchId, stockTemplateId, DateTime.UtcNow, null);
     }
 }

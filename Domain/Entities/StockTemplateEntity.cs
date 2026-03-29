@@ -9,15 +9,15 @@ public sealed class StockTemplateEntity
     public Guid     Id                { get; private set; }
     public string   ExternalReference { get; private set; } = string.Empty;
     public string?  Description       { get; private set; }
-    public DateTime CreatedAt         { get; private set; }
-    public DateTime UpdatedAt         { get; private set; }
+    public DateTime  CreatedAt         { get; private set; }
+    public DateTime? UpdatedAt         { get; private set; }
 
     private StockTemplateEntity(
         Guid id,
         string externalReference,
         string? description,
         DateTime createdAt,
-        DateTime updatedAt)
+        DateTime? updatedAt)
     {
         Id                = id;
         ExternalReference = externalReference;
@@ -30,12 +30,11 @@ public sealed class StockTemplateEntity
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(externalReference);
 
-        var now = DateTime.UtcNow;
         return new StockTemplateEntity(
             Guid.NewGuid(),
             externalReference.Trim().ToUpperInvariant(),
             description,
-            now,
-            now);
+            DateTime.UtcNow,
+            null);
     }
 }
