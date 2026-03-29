@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using WarehouseStockService.Application.Common.Exceptions;
 using WarehouseStockService.Application.Handlers.StockLocation;
-using WarehouseStockService.Domain.Entities;
+using WarehouseStockService.Domain.ReadModels;
 
 namespace WarehouseStockService.Endpoints;
 
@@ -16,7 +16,7 @@ public sealed class StockLocationEndpoints : IEndpoint
         group.MapPost("/",         Create);
     }
 
-    private static async Task<Results<Ok<IReadOnlyList<StockLocationEntity>>, BadRequest<string>>> GetByBranch(
+    private static async Task<Results<Ok<IReadOnlyList<StockLocationDetail>>, BadRequest<string>>> GetByBranch(
         Guid? branchId,
         GetStockLocationsByBranchHandler handler,
         CancellationToken ct)
@@ -27,7 +27,7 @@ public sealed class StockLocationEndpoints : IEndpoint
         return TypedResults.Ok(await handler.HandleAsync(branchId.Value, ct));
     }
 
-    private static async Task<Results<Ok<StockLocationEntity>, NotFound>> GetById(
+    private static async Task<Results<Ok<StockLocationDetail>, NotFound>> GetById(
         Guid id,
         GetStockLocationByIdHandler handler,
         CancellationToken ct)

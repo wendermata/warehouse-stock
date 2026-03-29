@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using WarehouseStockService.Domain.Entities;
+using WarehouseStockService.Domain.ReadModels;
 using WarehouseStockService.Domain.Repositories;
 using WarehouseStockService.Infrastructure.Persistence;
 
@@ -8,21 +9,23 @@ namespace WarehouseStockService.Infrastructure.Repositories;
 
 internal sealed class StockLocationRepository(DbSession session) : IStockLocationRepository
 {
-    public async Task<StockLocationEntity?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<StockLocationDetail?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         await EnsureOpenAsync(ct);
 
         const string sql = """
-            SELECT id,
-                   branch_id         AS branchId,
-                   stock_template_id AS stockTemplateId,
-                   created_at        AS createdAt,
-                   updated_at        AS updatedAt
-            FROM stock_locations
-            WHERE id = @id
+            SELECT sl.id,
+                   sl.branch_id         AS branchId,
+                   sl.stock_template_id AS stockTemplateId,
+                   st.description       AS stockTemplateDescription,
+                   sl.created_at        AS createdAt,
+                   sl.updated_at        AS updatedAt
+            FROM stock_locations sl
+            JOIN stock_templates st ON st.id = sl.stock_template_id
+            WHERE sl.id = @id
             """;
 
-        return await session.Connection.QueryFirstOrDefaultAsync<StockLocationEntity>(
+        return await session.Connection.QueryFirstOrDefaultAsync<StockLocationDetail>(
             new CommandDefinition(sql, new { id }, session.Transaction, cancellationToken: ct));
     }
 
@@ -44,22 +47,24 @@ internal sealed class StockLocationRepository(DbSession session) : IStockLocatio
             new CommandDefinition(sql, new { branchId, stockTemplateId }, session.Transaction, cancellationToken: ct));
     }
 
-    public async Task<IReadOnlyList<StockLocationEntity>> GetByBranchIdAsync(Guid branchId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<StockLocationDetail>> GetByBranchIdAsync(Guid branchId, CancellationToken ct = default)
     {
         await EnsureOpenAsync(ct);
 
         const string sql = """
-            SELECT id,
-                   branch_id         AS branchId,
-                   stock_template_id AS stockTemplateId,
-                   created_at        AS createdAt,
-                   updated_at        AS updatedAt
-            FROM stock_locations
-            WHERE branch_id = @branchId
-            ORDER BY stock_template_id
+            SELECT sl.id,
+                   sl.branch_id         AS branchId,
+                   sl.stock_template_id AS stockTemplateId,
+                   st.description       AS stockTemplateDescription,
+                   sl.created_at        AS createdAt,
+                   sl.updated_at        AS updatedAt
+            FROM stock_locations sl
+            JOIN stock_templates st ON st.id = sl.stock_template_id
+            WHERE sl.branch_id = @branchId
+            ORDER BY st.external_reference
             """;
 
-        var result = await session.Connection.QueryAsync<StockLocationEntity>(
+        var result = await session.Connection.QueryAsync<StockLocationDetail>(
             new CommandDefinition(sql, new { branchId }, session.Transaction, cancellationToken: ct));
 
         return result.AsList();
