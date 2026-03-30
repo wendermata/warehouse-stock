@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using WarehouseStockService.Application.Common.Exceptions;
 using WarehouseStockService.Application.Handlers.ItemLocation;
-using WarehouseStockService.Domain.Entities;
+using WarehouseStockService.Domain.ReadModels;
 
 namespace WarehouseStockService.Endpoints;
 
@@ -19,7 +19,7 @@ public sealed class ItemLocationEndpoints : IEndpoint
         group.MapPost("/{id:guid}/exit",  ApplyExit);
     }
 
-    private static async Task<Results<Ok<ItemLocationEntity>, NotFound>> GetById(
+    private static async Task<Results<Ok<ItemLocationDetail>, NotFound>> GetById(
         Guid id,
         GetItemLocationByIdHandler handler,
         CancellationToken ct)
@@ -28,7 +28,7 @@ public sealed class ItemLocationEndpoints : IEndpoint
         return item is null ? TypedResults.NotFound() : TypedResults.Ok(item);
     }
 
-    private static async Task<Results<Ok<IReadOnlyList<ItemLocationEntity>>, BadRequest<string>>> GetByLocation(
+    private static async Task<Results<Ok<IReadOnlyList<ItemLocationDetail>>, BadRequest<string>>> GetByLocation(
         Guid? stockLocationId,
         GetItemLocationsByLocationHandler handler,
         CancellationToken ct)
@@ -39,7 +39,7 @@ public sealed class ItemLocationEndpoints : IEndpoint
         return TypedResults.Ok(await handler.HandleAsync(stockLocationId.Value, ct));
     }
 
-    private static async Task<Results<Ok<IReadOnlyList<ItemLocationEntity>>, BadRequest<string>>> GetBySku(
+    private static async Task<Results<Ok<IReadOnlyList<ItemLocationDetail>>, BadRequest<string>>> GetBySku(
         string? sku,
         GetItemLocationsBySkuHandler handler,
         CancellationToken ct)

@@ -1,6 +1,7 @@
 using System.Data;
 using Dapper;
 using WarehouseStockService.Domain.Entities;
+using WarehouseStockService.Domain.ReadModels;
 using WarehouseStockService.Domain.Repositories;
 using WarehouseStockService.Infrastructure.Persistence;
 
@@ -8,22 +9,25 @@ namespace WarehouseStockService.Infrastructure.Repositories;
 
 internal sealed class ItemLocationRepository(DbSession session) : IItemLocationRepository
 {
-    public async Task<ItemLocationEntity?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<ItemLocationDetail?> GetDetailByIdAsync(Guid id, CancellationToken ct = default)
     {
         await EnsureOpenAsync(ct);
 
         const string sql = """
-            SELECT id,
-                   stock_location_id  AS stockLocationId,
-                   sku,
-                   available_quantity AS availableQuantity,
-                   created_at         AS createdAt,
-                   updated_at         AS updatedAt
-            FROM item_locations
-            WHERE id = @id
+            SELECT il.id,
+                   il.stock_location_id  AS stockLocationId,
+                   il.sku,
+                   il.available_quantity AS availableQuantity,
+                   st.description        AS stockTemplateDescription,
+                   il.created_at         AS createdAt,
+                   il.updated_at         AS updatedAt
+            FROM item_locations il
+            INNER JOIN stock_locations sl ON sl.id = il.stock_location_id
+            INNER JOIN stock_templates st ON st.id = sl.stock_template_id
+            WHERE il.id = @id
             """;
 
-        return await session.Connection.QueryFirstOrDefaultAsync<ItemLocationEntity>(
+        return await session.Connection.QueryFirstOrDefaultAsync<ItemLocationDetail>(
             new CommandDefinition(sql, new { id }, session.Transaction, cancellationToken: ct));
     }
 
@@ -66,44 +70,50 @@ internal sealed class ItemLocationRepository(DbSession session) : IItemLocationR
             new CommandDefinition(sql, new { sku, stockLocationId }, session.Transaction, cancellationToken: ct));
     }
 
-    public async Task<IReadOnlyList<ItemLocationEntity>> GetByLocationIdAsync(Guid stockLocationId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ItemLocationDetail>> GetDetailsByLocationIdAsync(Guid stockLocationId, CancellationToken ct = default)
     {
         await EnsureOpenAsync(ct);
 
         const string sql = """
-            SELECT id,
-                   stock_location_id  AS stockLocationId,
-                   sku,
-                   available_quantity AS availableQuantity,
-                   created_at         AS createdAt,
-                   updated_at         AS updatedAt
-            FROM item_locations
-            WHERE stock_location_id = @stockLocationId
-            ORDER BY sku
+            SELECT il.id,
+                   il.stock_location_id  AS stockLocationId,
+                   il.sku,
+                   il.available_quantity AS availableQuantity,
+                   st.description        AS stockTemplateDescription,
+                   il.created_at         AS createdAt,
+                   il.updated_at         AS updatedAt
+            FROM item_locations il
+            INNER JOIN stock_locations sl ON sl.id = il.stock_location_id
+            INNER JOIN stock_templates st ON st.id = sl.stock_template_id
+            WHERE il.stock_location_id = @stockLocationId
+            ORDER BY il.sku
             """;
 
-        var result = await session.Connection.QueryAsync<ItemLocationEntity>(
+        var result = await session.Connection.QueryAsync<ItemLocationDetail>(
             new CommandDefinition(sql, new { stockLocationId }, session.Transaction, cancellationToken: ct));
 
         return result.AsList();
     }
 
-    public async Task<IReadOnlyList<ItemLocationEntity>> GetBySkuAsync(string sku, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ItemLocationDetail>> GetDetailsBySkuAsync(string sku, CancellationToken ct = default)
     {
         await EnsureOpenAsync(ct);
 
         const string sql = """
-            SELECT id,
-                   stock_location_id  AS stockLocationId,
-                   sku,
-                   available_quantity AS availableQuantity,
-                   created_at         AS createdAt,
-                   updated_at         AS updatedAt
-            FROM item_locations
-            WHERE sku = @sku
+            SELECT il.id,
+                   il.stock_location_id  AS stockLocationId,
+                   il.sku,
+                   il.available_quantity AS availableQuantity,
+                   st.description        AS stockTemplateDescription,
+                   il.created_at         AS createdAt,
+                   il.updated_at         AS updatedAt
+            FROM item_locations il
+            INNER JOIN stock_locations sl ON sl.id = il.stock_location_id
+            INNER JOIN stock_templates st ON st.id = sl.stock_template_id
+            WHERE il.sku = @sku
             """;
 
-        var result = await session.Connection.QueryAsync<ItemLocationEntity>(
+        var result = await session.Connection.QueryAsync<ItemLocationDetail>(
             new CommandDefinition(sql, new { sku }, session.Transaction, cancellationToken: ct));
 
         return result.AsList();
