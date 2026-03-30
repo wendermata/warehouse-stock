@@ -56,6 +56,22 @@ internal sealed class StockMovementRepository(DbSession session) : IStockMovemen
         return result.AsList();
     }
 
+    public async Task<bool> ExistsAsync(Guid itemLocationId, string externalReference, CancellationToken ct = default)
+    {
+        await EnsureOpenAsync(ct);
+
+        const string sql = """
+            SELECT EXISTS (
+                SELECT 1 FROM stock_movements
+                WHERE item_location_id  = @itemLocationId
+                  AND external_reference = @externalReference
+            )
+            """;
+
+        return await session.Connection.ExecuteScalarAsync<bool>(
+            new CommandDefinition(sql, new { itemLocationId, externalReference }, session.Transaction, cancellationToken: ct));
+    }
+
     public async Task AddAsync(StockMovementEntity movement, CancellationToken ct = default)
     {
         await EnsureOpenAsync(ct);

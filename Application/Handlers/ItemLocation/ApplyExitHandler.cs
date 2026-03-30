@@ -21,6 +21,9 @@ public sealed class ApplyExitHandler(
         var itemLocation = await repo.GetByIdForUpdateAsync(input.Id, ct)
             ?? throw new NotFoundException(nameof(ItemLocationEntity), input.Id);
 
+        if (await movementRepo.ExistsAsync(input.Id, input.ExternalReference, ct))
+            throw new ConflictException($"Movement '{input.ExternalReference}' already processed for this item location.");
+
         itemLocation.ApplyExit(input.Quantity);
 
         var movement = StockMovementEntity.RegisterExit(

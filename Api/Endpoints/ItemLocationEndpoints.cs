@@ -71,7 +71,7 @@ public sealed class ItemLocationEndpoints : IEndpoint
         }
     }
 
-    private static async Task<Results<Ok<ItemLocationOutput>, NotFound>> ApplyEntry(
+    private static async Task<Results<Ok<ItemLocationOutput>, NotFound, Conflict>> ApplyEntry(
         Guid id,
         MovementRequest request,
         ApplyEntryHandler handler,
@@ -86,9 +86,13 @@ public sealed class ItemLocationEndpoints : IEndpoint
         {
             return TypedResults.NotFound();
         }
+        catch (ConflictException)
+        {
+            return TypedResults.Conflict();
+        }
     }
 
-    private static async Task<Results<Ok<ItemLocationOutput>, NotFound, UnprocessableEntity<string>>> ApplyExit(
+    private static async Task<Results<Ok<ItemLocationOutput>, NotFound, Conflict, UnprocessableEntity<string>>> ApplyExit(
         Guid id,
         MovementRequest request,
         ApplyExitHandler handler,
@@ -102,6 +106,10 @@ public sealed class ItemLocationEndpoints : IEndpoint
         catch (NotFoundException)
         {
             return TypedResults.NotFound();
+        }
+        catch (ConflictException)
+        {
+            return TypedResults.Conflict();
         }
         catch (InvalidOperationException ex)
         {

@@ -10,5 +10,6 @@ public sealed record ItemLocationDetail(
     string    Sku,
     int       AvailableQuantity,
     string?   StockTemplateDescription,
+    string    BranchName,
     DateTime  CreatedAt,
     DateTime? UpdatedAt);

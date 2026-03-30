@@ -19,11 +19,13 @@ internal sealed class ItemLocationRepository(DbSession session) : IItemLocationR
                    il.sku,
                    il.available_quantity AS availableQuantity,
                    st.description        AS stockTemplateDescription,
+                   b.name                AS branchName,
                    il.created_at         AS createdAt,
                    il.updated_at         AS updatedAt
             FROM item_locations il
             INNER JOIN stock_locations sl ON sl.id = il.stock_location_id
             INNER JOIN stock_templates st ON st.id = sl.stock_template_id
+            INNER JOIN branches b         ON b.id  = sl.branch_id
             WHERE il.id = @id
             """;
 
@@ -80,11 +82,13 @@ internal sealed class ItemLocationRepository(DbSession session) : IItemLocationR
                    il.sku,
                    il.available_quantity AS availableQuantity,
                    st.description        AS stockTemplateDescription,
+                   b.name                AS branchName,
                    il.created_at         AS createdAt,
                    il.updated_at         AS updatedAt
             FROM item_locations il
             INNER JOIN stock_locations sl ON sl.id = il.stock_location_id
             INNER JOIN stock_templates st ON st.id = sl.stock_template_id
+            INNER JOIN branches b         ON b.id  = sl.branch_id
             WHERE il.stock_location_id = @stockLocationId
             ORDER BY il.sku
             """;
@@ -105,11 +109,13 @@ internal sealed class ItemLocationRepository(DbSession session) : IItemLocationR
                    il.sku,
                    il.available_quantity AS availableQuantity,
                    st.description        AS stockTemplateDescription,
+                   b.name                AS branchName,
                    il.created_at         AS createdAt,
                    il.updated_at         AS updatedAt
             FROM item_locations il
             INNER JOIN stock_locations sl ON sl.id = il.stock_location_id
             INNER JOIN stock_templates st ON st.id = sl.stock_template_id
+            INNER JOIN branches b         ON b.id  = sl.branch_id
             WHERE il.sku = @sku
             """;
 

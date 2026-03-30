@@ -4,6 +4,7 @@ using WarehouseStockService.Application.Ports;
 using WarehouseStockService.Domain.Entities;
 using WarehouseStockService.Domain.Repositories;
 
+
 namespace WarehouseStockService.Application.Handlers.ItemLocation;
 
 public sealed record ApplyEntryInput(Guid Id, int Quantity, string ExternalReference);
@@ -21,6 +22,9 @@ public sealed class ApplyEntryHandler(
 
         var itemLocation = await repo.GetByIdForUpdateAsync(input.Id, ct)
             ?? throw new NotFoundException(nameof(ItemLocationEntity), input.Id);
+
+        if (await movementRepo.ExistsAsync(input.Id, input.ExternalReference, ct))
+            throw new ConflictException($"Movement '{input.ExternalReference}' already processed for this item location.");
 
         itemLocation.ApplyEntry(input.Quantity);
 
